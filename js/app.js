@@ -24,7 +24,22 @@
         counter.textContent =
             remaining + " item" + (remaining !== 1 ? "s" : "") + " left";
     }
+  
+function applyFilter() {
+    const items = todoList.querySelectorAll("li");
 
+    items.forEach(function (item) {
+        const completed = item.classList.contains("completed");
+
+        if (currentFilter === "all") {
+            item.classList.remove("hidden");
+        } else if (currentFilter === "active") {
+            item.classList.toggle("hidden", completed);
+        } else if (currentFilter === "done") {
+            item.classList.toggle("hidden", !completed);
+        }
+    });
+}
     // Filter tasks
     function applyFilter() {
         const items = todoList.querySelectorAll("li");
