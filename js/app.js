@@ -1,141 +1,110 @@
-(function () {
-
-    // Get HTML elements
-    const form = document.getElementById("todo-form");
-    const input = document.getElementById("todo-input");
-    const todoList = document.getElementById("todo-list");
-    const errorMsg = document.getElementById("error-msg");
-    const counter = document.getElementById("counter");
-
-    // Current filter
-    let currentFilter = "all";
-
-    // Update counter
-    function updateCounter() {
-        const items = todoList.querySelectorAll("li");
-        let remaining = 0;
-
-        items.forEach(function (item) {
-            if (!item.classList.contains("completed")) {
-                remaining++;
-            }
-        });
-
-        counter.textContent =
-            remaining + " item" + (remaining !== 1 ? "s" : "") + " left";
-    }
-  
-function applyFilter() {
-    const items = todoList.querySelectorAll("li");
-
-    items.forEach(function (item) {
-        const completed = item.classList.contains("completed");
-
-        if (currentFilter === "all") {
-            item.classList.remove("hidden");
-        } else if (currentFilter === "active") {
-            item.classList.toggle("hidden", completed);
-        } else if (currentFilter === "done") {
-            item.classList.toggle("hidden", !completed);
-        }
+document.addEventListener('DOMContentLoaded', () => {
+  // DOM Elements
+  const form = document.getElementById('todo-form');
+  const input = document.getElementById('todo-input');
+  const errorMsg = document.getElementById('error-msg');
+  const todoList = document.getElementById('todo-list');
+  const counter = document.getElementById('counter');
+ 
+  const filterAllBtn = document.getElementById('filter-all');
+  const filterActiveBtn = document.getElementById('filter-active');
+  const filterDoneBtn = document.getElementById('filter-done');
+ 
+  // Track active filter ('all', 'active', 'done')
+  let currentFilter = 'all';
+ 
+  // Update counter display for active (non-completed) items
+  function updateCounter() {
+    const activeCount = todoList.querySelectorAll('li:not(.completed)').length;
+    counter.textContent = `${activeCount} item${activeCount === 1 ? '' : 's'} left`;
+  }
+ 
+  // Update visibility of list items based on active filter
+  function applyFilter() {
+    const items = todoList.querySelectorAll('li');
+    items.forEach(li => {
+      const isCompleted = li.classList.contains('completed');
+      if (currentFilter === 'all') {
+        li.style.display = '';
+      } else if (currentFilter === 'active') {
+        li.style.display = isCompleted ? 'none' : '';
+      } else if (currentFilter === 'done') {
+        li.style.display = isCompleted ? '' : 'none';
+      }
     });
-}
-    // Filter tasks
-    function applyFilter() {
-        const items = todoList.querySelectorAll("li");
-
-        items.forEach(function (item) {
-            const completed = item.classList.contains("completed");
-
-            if (currentFilter === "all") {
-                item.hidden = false;
-            } else if (currentFilter === "active") {
-                item.hidden = completed;
-            } else if (currentFilter === "done") {
-                item.hidden = !completed;
-            }
-        });
+  }
+ 
+  // Feature 1 & 2: Add item / Handle empty input
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+ 
+    if (text === '') {
+      errorMsg.classList.remove('hidden');
+      return;
     }
-
-    // Add a new task
-    function addTodo() {
-        const taskText = input.value.trim();
-
-        if (taskText === "") {
-            errorMsg.classList.remove("hidden");
-            return;
-        }
-
-        errorMsg.classList.add("hidden");
-
-        const li = document.createElement("li");
-
-        const span = document.createElement("span");
-        span.className = "item-text";
-        span.textContent = taskText;
-
-        const deleteButton = document.createElement("button");
-        deleteButton.type = "button";
-        deleteButton.className = "delete-btn";
-        deleteButton.textContent = "Delete";
-
-        li.appendChild(span);
-        li.appendChild(deleteButton);
-
-        todoList.appendChild(li);
-
-        input.value = "";
-
-        applyFilter();
-        updateCounter();
-    }
-
-    // Submit form
-    form.addEventListener("submit", function (event) {
-        event.preventDefault();
-        addTodo();
-    });
-
-    // Event delegation
-    todoList.addEventListener("click", function (event) {
-        const deleteButton = event.target.closest(".delete-btn");
-        const itemText = event.target.closest(".item-text");
-
-        if (deleteButton) {
-            const li = deleteButton.closest("li");
-            li.remove();
-        } else if (itemText) {
-            const li = itemText.closest("li");
-            li.classList.toggle("completed");
-        }
-
-        applyFilter();
-        updateCounter();
-    });
-
-    // Show all tasks
-    document.getElementById("filter-all")
-        .addEventListener("click", function () {
-            currentFilter = "all";
-            applyFilter();
-        });
-
-    // Show active tasks
-    document.getElementById("filter-active")
-        .addEventListener("click", function () {
-            currentFilter = "active";
-            applyFilter();
-        });
-
-    // Show completed tasks
-    document.getElementById("filter-done")
-        .addEventListener("click", function () {
-            currentFilter = "done";
-            applyFilter();
-        });
-
-    // Initial setup
-    errorMsg.classList.add("hidden");
+ 
+    errorMsg.classList.add('hidden');
+ 
+    // Create item structure
+    const li = document.createElement('li');
+    const span = document.createElement('span');
+    span.className = 'todo-text';
+    span.textContent = text;
+ 
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'delete-btn';
+    deleteBtn.textContent = 'Delete';
+ 
+    li.appendChild(span);
+    li.appendChild(deleteBtn);
+    todoList.appendChild(li);
+ 
+    input.value = '';
+    input.focus();
+    applyFilter();
     updateCounter();
-
-})();
+  });
+ 
+  // Feature 3, 4, & 7: Event Delegation on #todo-list
+  todoList.addEventListener('click', (e) => {
+    const target = e.target;
+    const li = target.closest('li');
+ 
+    if (!li) return;
+ 
+    // Feature 4: Delete item
+    if (target.classList.contains('delete-btn')) {
+      li.remove();
+      updateCounter();
+      return;
+    }
+ 
+    // Feature 3: Toggle complete when clicking item text or item container
+    if (target.classList.contains('todo-text') || target === li) {
+      li.classList.toggle('completed');
+      applyFilter();
+      updateCounter();
+    }
+  });
+ 
+  // Feature 5: Filter buttons
+  filterAllBtn.addEventListener('click', () => {
+    currentFilter = 'all';
+    applyFilter();
+  });
+ 
+  filterActiveBtn.addEventListener('click', () => {
+    currentFilter = 'active';
+    applyFilter();
+  });
+ 
+  filterDoneBtn.addEventListener('click', () => {
+    currentFilter = 'done';
+    applyFilter();
+  });
+ 
+  // Initial state
+  updateCounter();
+});
